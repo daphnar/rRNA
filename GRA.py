@@ -1,3 +1,5 @@
+#We use EMBOSS:6.6.0.0 for needle 
+#We use vsearch-2.17.1 for dereplication of sequences
 import os
 from Bio import SeqIO,Seq,SeqRecord
 import glob
@@ -5,6 +7,18 @@ import pandas as pd
 from datetime import datetime
 import subprocess
 import sys
+
+base_path=''
+ribosome_reference_path=os.path.join(base_path,'shared/genomes/ribosome')
+output_dir='output_dir'
+msa_path = os.path.join(base_path,MSA')
+output_tmp_dir=os.path.join(base_path,output_dir,'tmp'
+helix_pos_table=os.path.join(base_path,\
+    'supp_tables/TableS1-helix-annotations.csv')
+es_pos_table=os.path.join(base_path,\
+    'supp_tables/TableS2-ES-core-annotations.csv')
+
+
 def run_shell_command(command,debug=True):
     if debug:
         print('Running: %s'%command)
@@ -26,22 +40,10 @@ def split_allseqs_to_single_files(all_seq_fasta,output_dir):
         output_files.append(output_file)
     return output_files
 
-OAK_BASE=''
-base_path=OAK_BASE
-
-ribosome_reference_path=os.path.join(base_path,'shared/genomes/ribosome')
-output_dir='output_dir'
-msa_path = os.path.join(base_path,MSA')
-output_tmp_dir=os.path.join(base_path,output_dir,'tmp'
- 
-helix_pos_table=os.path.join(base_path,\
-    'supp_tables/TableS1-helix-annotations.csv')
-es_pos_table=os.path.join(base_path,\
-    'supp_tables/TableS2-ES-core-annotations.csv')
-
-def dereplicate_remote():
+def dereplicate_remote(): 
+    #helix.fa, es.fa, non_es.fa are fasta files with RNA45S5 reference sequences for helices/ES/non-ES regions
     all_reference_records={}
-    for region_file in ['helix_Theo.fa','es_Theo.fa','non_es_Theo.fa']:
+    for region_file in ['helix.fa','es.fa','non_es.fa']:
         all_reference_records.update({record.id:record for record in \
             SeqIO.parse(os.path.join(ribosome_reference_path,region_file),'fasta')})
     for region_atlas in glob.glob(os.path.join(atlas_path,'*.fa')):
@@ -53,18 +55,9 @@ def dereplicate_remote():
         with open(united_output,'w') as f_h:
             SeqIO.write(united_variants,f_h,'fasta')
         dereplicated_output = os.path.join(output_dir, region + '.dereplication.fa')
-        command = '/oak/stanford/groups/pritch/users/daphna/tools/vsearch-2.17.1/bin/vsearch --minseqlength 2 --derep_fulllength %s --sizeout --fasta_width 0 --output %s' \
+        command = 'vsearch-2.17.1/bin/vsearch --minseqlength 2 --derep_fulllength %s --sizeout --fasta_width 0 --output %s' \
                   % (united_output,dereplicated_output)
         os.system(command)
-
-def remove_imputed_variants():
-    for region_atlas in glob.glob(os.path.join(output_dir, '*.dereplication.fa')):
-        keep_reads=[]
-        for record in SeqIO.parse(region_atlas,'fasta'):
-            if record.id.find('imputed')==-1:
-                keep_reads.append(record)
-        with open(region_atlas, 'w') as f_h:
-            SeqIO.write(keep_reads, f_h, 'fasta')
 
 def run_needle_on_region_variants(region_atlas,output_dir,tmp_dir,exe_path=''):
     executable = exe_path + 'needle'
@@ -156,40 +149,13 @@ def run_needle_on_region_variants(region_atlas,output_dir,tmp_dir,exe_path=''):
         SeqIO.write(all_aligned_records, f_h, 'fasta')
     print(os.path.basename(region_atlas), 'missing %s seqs' % double_gap_reference_n)
 
-def run_needle_on_all_variants(output_dir,exe_path=''):#/oak/stanford/groups/pritch/users/daphna/tools/EMBOSS-6.6.0/emboss/'):
+def run_needle_on_all_variants(output_dir,exe_path=''):#We use EMBOSS-6.6.0/emboss/
     for region_atlas in glob.glob(os.path.join(output_dir, '*.dereplication.fa')):
         tmp_name=os.path.basename(region_atlas).replace('.dereplication.fa','_tmp')
         tmp_dir=os.path.join(os.path.dirname(region_atlas),tmp_name)
         if not os.path.exists(tmp_dir):
             os.mkdir(os.path.join(os.path.dirname(region_atlas),tmp_name))
         run_needle_on_region_variants(region_atlas, output_dir, tmp_dir, exe_path=exe_path)
-
-def msa_local():
-    for region_atlas in glob.glob(os.path.join(output_dir, '*.dereplication.fa')):
-        region = os.path.basename(region_atlas).replace('.dereplication.fa', '')
-        msa_output = os.path.join(output_dir, region + '.clustalo.fa')
-        command='clustalo --in %s --out %s'%(region_atlas,msa_output)
-        os.system(command)
-
-def get_atlas_needle_after_MSA(atlas_path,msa_path,output_dir):
-    for atlas_region_f in glob.glob(os.path.join(atlas_path,'*atlas.fa')):
-        atlas_ids = []
-        if os.path.basename(atlas_region_f)=='all_region.atlas.fa':
-            continue
-        for record in SeqIO.parse(atlas_region_f,'fasta'):
-            new_id = record.id
-            new_id = new_id.split('_size_')[0]
-            if '|' in new_id:
-                new_id=new_id.split('|')[1]
-            atlas_ids.append(new_id)
-        region = os.path.basename(atlas_region_f).split('.atlas.')[0]
-        found_records=[]
-        for record in SeqIO.parse(os.path.join(msa_path,'all.MSA.%s.fa'%region),'fasta'):
-            if record.id in atlas_ids:
-                found_records.append(record)
-        assert len(found_records)==len(atlas_ids)
-        with open(os.path.join(output_dir,'%s.Needle_SA.fa'%region),'w') as f_h:
-            SeqIO.write(found_records,f_h,'fasta')
 
 def make_intermediante_vcf(output_dir):
     def iter(seq):#remove all "-" but if empty put "-"
@@ -252,14 +218,6 @@ def make_vcf(res_df,output_dir,throw_boundary=False,get_region=True):
         united_pos_df = united_pos_df.loc[~united_pos_df['POS'].isin(region_45s_pos['End'])]
     united_pos_df.to_csv(os.path.join(output_dir,'SNV.atlas.Needle_SA.vcf'),index=False,sep='\t')
     return united_pos_df
-
-def calc_idels(obj):
-    indels=obj['ALT'].apply(
-        lambda x: 1 if x == '-' else pd.Series(x.split(',')).apply(lambda x: len(x) > 1 if x != '-' else True).astype(
-            int).sum()).sum()
-    variants=obj['ALT_LEN'].sum()
-    return indels/variants
-
 
 if __name__=='__main__':
     region=os.path.join(output_tmp_dir,sys.argv[1]+'.dereplication.fa')
