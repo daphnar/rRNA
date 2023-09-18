@@ -29,7 +29,7 @@ def split_allseqs_to_single_files(all_seq_fasta,output_dir):
 
 def run_needle_on_region_variants(region_atlas,output_dir,tmp_dir,exe_path=''):
     executable = exe_path + 'needle'
-    output_region_alignment = os.path.join(os.path.dirname(region_atlas),'GRA_'+os.path.basename(region_atlas))
+    output_region_alignment = os.path.join(os.path.dirname(region_atlas),'RGA_'+os.path.basename(region_atlas))
     all_aligned_records = []
     seq_files = split_allseqs_to_single_files(region_atlas, tmp_dir)
     ref_file = seq_files[0]
