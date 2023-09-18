@@ -5,6 +5,7 @@ import pandas as pd
 from datetime import datetime
 import subprocess
 import sys
+
 def run_shell_command(command,debug=True):
     if debug:
         print('Running: %s'%command)
@@ -18,7 +19,7 @@ def split_allseqs_to_single_files(all_seq_fasta,output_dir):
     f_in = SeqIO.parse(all_seq_fasta,'fasta')
     output_files = []
     for record in f_in:
-        output_file =os.path.join(output_dir,#'tmp',
+        output_file =os.path.join(output_dir,
                 record.id.replace('|','___').replace('/','_slash_').replace(';size=','_size_')+'.fa')
         if not os.path.exists(output_file):
             with open(output_file,'w') as f_out:
@@ -28,7 +29,7 @@ def split_allseqs_to_single_files(all_seq_fasta,output_dir):
 
 def run_needle_on_region_variants(region_atlas,output_dir,tmp_dir,exe_path=''):
     executable = exe_path + 'needle'
-    output_region_alignment = region_atlas.replace('dereplication', 'Needle_SA')
+    output_region_alignment = os.path.join(os.path.dirname(region_atlas),'GRA_'+os.path.basename(region_atlas))
     all_aligned_records = []
     seq_files = split_allseqs_to_single_files(region_atlas, tmp_dir)
     ref_file = seq_files[0]
@@ -116,3 +117,10 @@ def run_needle_on_region_variants(region_atlas,output_dir,tmp_dir,exe_path=''):
     with open(output_region_alignment, 'w') as f_h:
         SeqIO.write(all_aligned_records, f_h, 'fasta')
 
+if __name__=='__main__':
+    region_atlas = os.path.join(os.getcwd(),'mock_sequences.fa')
+    tmp_dir = os.path.join(os.getcwd(),'tmp')
+    if not os.path.exists(tmp_dir):
+        os.mkdir(tmp_dir)
+    output_dir = os.getcwd()
+    un_needle_on_region_variants(region_atlas,output_dir,tmp_dir)
