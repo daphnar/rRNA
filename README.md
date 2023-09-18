@@ -10,4 +10,12 @@ Here we assume as input a fasta file where the first sequence in the file is the
 
 The system requirements are pre-installed Needleman-Wunch executable from https://www.ebi.ac.uk/Tools/emboss/. 
 We use EMBOSS-6.6.0.
+
+
+
+
  
+region_atlas = '/Users/daphna/Downloads/mock_sequences.fa'
+output_dir = '/Users/daphna/Downloads/'
+tmp_dir = '/Users/daphna/Downloads/tmp'
+run_needle_on_region_variants(region_atlas,output_dir,tmp_dir)
