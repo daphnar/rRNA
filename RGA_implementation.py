@@ -1,3 +1,31 @@
+import os
+from Bio import SeqIO,Seq,SeqRecord
+import glob
+import pandas as pd
+from datetime import datetime
+import subprocess
+import sys
+def run_shell_command(command,debug=True):
+    if debug:
+        print('Running: %s'%command)
+        print('Starting: %s\n\n'%datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+    output = subprocess.check_output(command, shell = True)
+    if debug:
+        print('End: %s\n\n'%datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+    return output
+
+def split_allseqs_to_single_files(all_seq_fasta,output_dir):
+    f_in = SeqIO.parse(all_seq_fasta,'fasta')
+    output_files = []
+    for record in f_in:
+        output_file =os.path.join(output_dir,#'tmp',
+                record.id.replace('|','___').replace('/','_slash_').replace(';size=','_size_')+'.fa')
+        if not os.path.exists(output_file):
+            with open(output_file,'w') as f_out:
+                SeqIO.write([record],f_out,'fasta')
+        output_files.append(output_file)
+    return output_files
+
 def run_needle_on_region_variants(region_atlas,output_dir,tmp_dir,exe_path=''):
     executable = exe_path + 'needle'
     output_region_alignment = region_atlas.replace('dereplication', 'Needle_SA')
