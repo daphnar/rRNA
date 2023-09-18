@@ -123,4 +123,4 @@ if __name__=='__main__':
     if not os.path.exists(tmp_dir):
         os.mkdir(tmp_dir)
     output_dir = os.getcwd()
-    un_needle_on_region_variants(region_atlas,output_dir,tmp_dir)
+    run_needle_on_region_variants(region_atlas,output_dir,tmp_dir)
