@@ -11,5 +11,5 @@ Here we assume as input a fasta file where the first sequence in the file is the
 The system requirements are pre-installed Needleman-Wunch executable from https://www.ebi.ac.uk/Tools/emboss/. 
 We use the executable "needle" from EMBOSS-6.6.0.
 
-When running the RGA.py the five sequences found in mock_sequences.fa are aligned to the first sequence, the 28S reference, and saved as the output file RGA_mock_sequences.fa
+When running the RGA.py the five sequences found in mock_sequences.fa file are aligned to the first sequence, the 28S reference, and saved as the output file RGA_mock_sequences.fa
 
