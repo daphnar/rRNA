@@ -8,6 +8,7 @@ The (RGA) steps are as follows:
 3) We align all sequences to the gap-aligned reference using the previous global alignment with additional extended gaps at reference positions. 
 4) Lastly, we extract all variants at a given position across all aligned sequences. 
 
+![Alt RGA](image link)
 The system requirements are pre-installed Needleman-Wunch executable from https://www.ebi.ac.uk/Tools/emboss/. 
 We use the executable "needle" from EMBOSS-6.6.0.
 
