@@ -1,16 +1,16 @@
 # RiboVAn.py file contains an implementation for the RiboVAn pipeline.
 
-The RiboVAn.py script expect as input parameters mapped sam files to the atlas. 
+The RiboVAn.py script expect as input parameters mapped sam files to the atlas and returns nucleotide atlas variant frequencies
 
-Here since input files were paired-end short reads, both strand reads were mapped to the atlas. 
-As an example:
+## Here since input files were paired-end short reads, both strand reads were mapped to the atlas. 
+As an example:\n
 fastq_file1="file_1.fastq.gz"
 fastq_file2="file_2.fastq.gz"
-
+#
 bowtie2 -x bowtie2_inde} -U "$fastq_file1" --score-min 'C,0,-1' \
 -S "file_1.ribo.atlas_mapped.sam" --un "file_1.unmapped.sam" \
 2> "file_1.mapping_stats.txt"
-
+#
 bowtie2 -x bowtie2_inde} -U "$fastq_file1" --score-min 'C,0,-1' \
 -S "file_2.ribo.atlas_mapped.sam" --un "file_1.unmapped.sam" \
 2> "file_2.mapping_stats.txt"
