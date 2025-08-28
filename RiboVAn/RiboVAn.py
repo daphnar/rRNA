@@ -8,14 +8,15 @@ atlas_path = 'atlas_%s.hESC_mono_polysome.needle_gap10_extenstion_05.with_raw_co
 def count_matches(f_in1,f_in2,f_out,binary=True):
     res = []
     for f_in in [f_in1,f_in2]:
-        if binary:
-            mapiter = pysam.AlignmentFile(f_in, 'r')
-        else:
-            mapiter = pysam.AlignmentFile(f_in, 'rb')
-        for read in mapiter.fetch():
-            if read.reference_name is not None: #Removing unmapped
-                if read.get_tag('NM') == 0:
-                    res.append(read.reference_name)
+        if f_in is not None:
+            if binary:
+                mapiter = pysam.AlignmentFile(f_in, 'r')
+            else:
+                mapiter = pysam.AlignmentFile(f_in, 'rb')
+            for read in mapiter.fetch():
+                if read.reference_name is not None: #Removing unmapped
+                    if read.get_tag('NM') == 0:
+                        res.append(read.reference_name)
     pd.Series(res).value_counts().to_csv(f_out)
 
 def get_nuc_freq(input_es_mapped_res,output_nuc_freq_mapped_res):
@@ -86,6 +87,8 @@ def get_nuc_freq(input_es_mapped_res,output_nuc_freq_mapped_res):
 if __name__=='__main__':
     f_in1 = sys.argv[1]
     f_in2 = sys.argv[2]
+    if f_in2 =='False':
+        f_in2=None
     f_out='%s.mapped_result_atlas_expand150_ES.csv'%f_in1
     binary=False
     count_matches(f_in1,f_in2, f_out, binary)
